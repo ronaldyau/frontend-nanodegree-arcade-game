@@ -1,11 +1,14 @@
+var COLUMN_WIDTH = 101,
+    ROW_HEIGHT = 75;
+    PLAYER_ROW_HEIGHT = 80;
 // Enemies our player must avoid
 var Enemy = function(col, row) {
     // Variables applied to each of our instances go here,
     // we've provided one for you to get started
     this.col = col;
     this.row = row;
-    this.x = col * 101;
-    this.y = row * 75;
+    this.x = col * COLUMN_WIDTH;
+    this.y = row * ROW_HEIGHT;
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
@@ -17,9 +20,9 @@ Enemy.prototype.update = function(dt) {
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
     // all computers.
-    this.x = this.x + (dt * 100);
-    if (this.x > 505) {
-        this.x = 0;
+    this.x = this.x + (dt * 400);
+    if (this.x > COLUMN_WIDTH * 5) {
+        this.x = COLUMN_WIDTH * -1;
     }
 };
 
@@ -28,9 +31,28 @@ Enemy.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
+Enemy.prototype.checkCollisions = function(player) {
+    if(this.row === player.row) {
+        var playerLeftSide = player.x + 25,
+            playerRightSide = player.x + 75,
+            enemyLeftSide = this.x,
+            enemyRightSide = this.x + COLUMN_WIDTH;
+        if (playerLeftSide <= enemyRightSide && playerLeftSide >= enemyLeftSide) {
+            return true;
+        }
+        if (playerRightSide <= enemyRightSide && playerRightSide >= enemyLeftSide) {
+            return true;
+        }
+    }
+    else {
+        return false;
+    }
+}
+
 Enemy.prototype.reset = function() {
-    this.x = this.col * 101;
-    this.y = this.row * 75;
+    var randomCol = Math.floor(Math.random() * 4);
+    this.x = -COLUMN_WIDTH * randomCol;
+    this.y =  ROW_HEIGHT * this.row;
 };
 
 // Now write your own player class
@@ -42,18 +64,22 @@ var Player = function(col, row) {
     this.startRow = row;
     this.col = col;
     this.row = row;
-}
+};
 
 // Update the player's position, required method for game
 // Parameter: dt, a time delta between ticks
 Player.prototype.update = function(dt) {
-    this.x = this.col * 101;
-    this.y = this.row * 80;
-}
+    this.x = this.col * COLUMN_WIDTH;
+    this.y = this.row * PLAYER_ROW_HEIGHT;
+};
 
 // Draw the enemy on the screen, required method for game
 Player.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);    
+};
+
+Player.prototype.checkWinner = function() {
+    return this.row === 0;
 }
 
 // handle's input to change player's column or row
@@ -80,7 +106,7 @@ Player.prototype.handleInput = function(direction) {
             }
             break;        
     }
-}
+};
 
 // Resets to the player's original start column and row
 Player.prototype.reset = function() {
@@ -91,7 +117,7 @@ Player.prototype.reset = function() {
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
-allEnemies = [new Enemy(0,1), new Enemy(3,2), new Enemy(1,3)];
+allEnemies = [new Enemy(0,1), new Enemy(4,2), new Enemy(3,3)];
 player = new Player(2,5);
 
 // This listens for key presses and sends the keys to your

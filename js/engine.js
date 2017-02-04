@@ -19,6 +19,8 @@ var Engine = (function(global) {
      * create the canvas element, grab the 2D context for that canvas
      * set the canvas elements height/width and add it to the DOM.
      */
+    var IMAGE_WIDTH = 101,
+        IMAGE_HEIGHT = 83;
     var doc = global.document,
         win = global.window,
         canvas = doc.createElement('canvas'),
@@ -64,7 +66,6 @@ var Engine = (function(global) {
      * game loop.
      */
     function init() {
-        reset();
         lastTime = Date.now();
         main();
     }
@@ -80,8 +81,6 @@ var Engine = (function(global) {
      */
     function update(dt) {
         updateEntities(dt);
-        checkCollisions();
-        checkWinner();
     }
 
     /* This is called by the update function and loops through all of the
@@ -96,29 +95,6 @@ var Engine = (function(global) {
             enemy.update(dt);
         });
         player.update();
-    }
-
-    function checkCollisions() {
-        var playerLeftSide = player.x + 25,
-            playerRightSide = player.x + 75;
-        allEnemies.forEach(function(enemy) {
-            if(enemy.row === player.row) {
-                var enemyLeftSide = enemy.x,
-                    enemyRightSide = enemy.x + 101;
-                if (enemyRightSide >= playerLeftSide && enemyRightSide <= playerRightSide) {
-                    reset();
-                }
-                else if (enemyLeftSide >= playerLeftSide && enemyLeftSide <= playerRightSide) {
-                    reset();
-                }
-            }
-        });
-    }
-
-    function checkWinner() {
-        if (player.row === 0) {
-            reset();
-        }
     }
 
     /* This function initially draws the "game level", it will then call
@@ -156,7 +132,7 @@ var Engine = (function(global) {
                  * so that we get the benefits of caching these images, since
                  * we're using them over and over.
                  */
-                ctx.drawImage(Resources.get(rowImages[row]), col * 101, row * 83);
+                ctx.drawImage(Resources.get(rowImages[row]), col * IMAGE_WIDTH, row * IMAGE_HEIGHT);
             }
         }
 
@@ -173,9 +149,15 @@ var Engine = (function(global) {
          */
         allEnemies.forEach(function(enemy) {
             enemy.render();
+            if(enemy.checkCollisions(player)) {
+                player.reset();
+            }
         });
 
         player.render();
+        if(player.checkWinner()) {
+            reset();
+        }
     }
 
     /* This function does nothing but it could have been a good place to
